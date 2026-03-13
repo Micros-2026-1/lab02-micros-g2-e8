@@ -4,27 +4,28 @@
 
 
 ## 1. Integrantes
-.
-.
+
+- Oscar Javier Sierra Chunza
+- Iván Felipe Méndez Sánchez
 
 ## 2. Documentación
 
-# 📑 Informe de Laboratorio: Configuración de Osciladores en PIC18F45K22
+#  Informe de Laboratorio: Configuración de Osciladores en PIC18F45K22
 
-## 📝 Resumen
+##  Resumen
 
 Este proyecto documenta la configuración y análisis de los sistemas de reloj en el microcontrolador **PIC18F45K22**. Se implementó un firmware en lenguaje C utilizando el compilador **XC8** que permite conmutar entre tres modos de operación: **Oscilador Interno (INTOSC)**, **Cristal de Cuarzo Externo (HS)** y **Circuito RC**. 
 
 El objetivo principal fue validar la precisión de cada fuente de reloj mediante la generación de una señal cuadrada de **500 Hz** en el pin **RC0**. A través de mediciones con osciloscopio, se evaluó la estabilidad de la frecuencia, el error porcentual respecto al valor teórico y el impacto de la **deriva térmica** en los osciladores basados en circuitos RC (internos y externos).
 
----
+---------------
 
-## 📚 Marco Teórico
+##  Marco Teórico
 
-### 1. El Sistema de Reloj en Microcontroladores
+### El Sistema de Reloj en Microcontroladores
 El reloj (*clock*) es la señal periódica que sincroniza todas las operaciones internas de la CPU y los periféricos. En la arquitectura PIC18, el ciclo de instrucción ($T_{cy}$) equivale a cuatro periodos del oscilador principal ($4 / F_{osc}$), lo que significa que la velocidad de ejecución depende directamente de la estabilidad de la fuente de reloj elegida.
 
-### 2. Fuentes de Oscilación en el PIC18F45K22
+###  Fuentes de Oscilación en el PIC18F45K22
 
 #### A. Oscilador de Cristal (Modo HS - High Speed)
 Utiliza un cristal de cuarzo externo conectado a los pines `OSC1` y `OSC2`. 
@@ -43,18 +44,18 @@ Utiliza una red de resistencia y capacitancia externa. La frecuencia de oscilaci
 $$f \approx \frac{1}{R \times C}$$
 Es el modo menos preciso y se utiliza únicamente en aplicaciones donde el tiempo no es un factor crítico.
 
-### 3. Registro de Control OSCCON y Fusibles
+###  D. Registro de Control OSCCON y Fusibles
 La selección de la fuente de reloj se define en dos niveles:
 1.  **Configuration Bits (#pragma config FOSC):** Determinan la fuente principal al momento del encendido (Power-up).
 2.  **Registro OSCCON:** Permite al software cambiar la fuente de reloj o la frecuencia del oscilador interno durante la ejecución mediante los bits `IRCF` (frecuencia) y `SCS` (selección de fuente).
 
-### 4. Análisis de Error y Estabilidad
+###  E. Análisis de Error y Estabilidad
 Para cuantificar la calidad del oscilador, se utiliza el cálculo del error porcentual comparando la frecuencia medida en el osciloscopio ($f_{med}$) contra la frecuencia esperada en el código ($f_{teo} = 500$ Hz):
 
 $$Error (\%) = \left( \frac{f_{med} - f_{teo}}{f_{teo}} \right) \times 100$$
 
 La **deriva térmica** se observa cuando, al aplicar calor al encapsulado, la frecuencia medida se desplaza debido a la alteración de las propiedades físicas de los materiales que componen el oscilador RC.
-
+---------------
 ### 2.1 Descripción del laboratorio
 
 * Herramientas y Materiales
@@ -78,7 +79,7 @@ Para el desarrollo de esta práctica se emplearon los siguientes elementos tecno
     * Computador con SO compatible.
     * Protoboard y jumpers de conexión.
 
----
+---------------
 
 * Descripción del Laboratorio
 
@@ -250,17 +251,39 @@ void main(void) {
 
 ## 4. Preguntas
 
-* ¿En qué modo se obtuvo la medición más cercana a la frecuencia teórica?
+* >.¿En qué modo se obtuvo la medición más cercana a la frecuencia teórica?
+  
+*El modo que presentó la mayor cercanía a la frecuencia teórica de $500\text{ Hz}$ fue el Modo 3 (RC Externo). En condiciones de temperatura ambiente y utilizando un capacitor de $27\text{ nF}$ junto con una resistencia de $200\text{ k}\Omega$, se logró una lectura experimental de $495.8\text{ Hz}$.
 
-* ¿Fue posible evidenciar el fenómeno de deriva? ¿Qué factores podrían explicar la variación de frecuencia al calentar el PIC?
+* >.¿Fue posible evidenciar el fenómeno de deriva? ¿Qué factores podrían explicar la variación de frecuencia al calentar el PIC?
+  
+* Sí. Se observó claramente en el modo con Cristal de Cuarzo. Aunque no se registraron temperaturas exactas, al calentar el cristal progresivamente, la frecuencia de la señal cuadrada aumentó de $496.1\text{ Hz}$ (en frío) hasta alcanzar los $502\text{ Hz}$, punto en el cual el cristal dejó de oscilar.Factores: La variación térmica altera las propiedades físicas del cristal (efecto piezoeléctrico) y la capacitancia de carga en los pines OSC1/OSC2. En sistemas RC, esto se debe a la dependencia de la resistencia y el material dieléctrico del capacitor respecto a la temperatura ambiente.
 
-* ¿Cuál es más preciso en cuanto a frecuencia teórica vs. medida?
+* >.¿Cuál es más preciso en cuanto a frecuencia teórica vs. medida?
+* En nuestro caso particular, obtuvimos una lectura más ajustada usando el oscilador RC debido a la calibración manual de los componentes pasivos. Sin embargo, desde una perspectiva técnica y de diseño, el Cristal de Cuarzo es la opción estándar y superior para aplicaciones que requieren alta precisión y fiabilidad a largo plazo.
 
 
-* Explique cómo usar RC0 para estimar la frecuencia del oscilador cuando RA6 no está disponible.
+* >.Explique cómo usar RC0 para estimar la frecuencia del oscilador cuando RA6 no está disponible.
+* Ante la ausencia del pin de salida de reloj RA6 (CLKO), utilizamos el pin RC0 como un cronómetro visual mediante un LED:
 
-* Si se quisiera duplicar la frecuencia del PIC usando PLL, ¿en qué modos se podría aplicar?
+Se programa un parpadeo (toggle) con retardos definidos por software.
 
-* Enliste ventajas y desventajas de cada modo.
+Si el LED parpadea a una velocidad distinta a la esperada, se infiere una discrepancia entre la frecuencia del oscilador real y la configurada en el código.
+
+El LED funciona como un indicador de error de tiempo relativo: si el tiempo de encendido es el doble de lo programado, la frecuencia real del sistema es la mitad de la esperada.
+
+
+* >Si se quisiera duplicar la frecuencia del PIC usando PLL, ¿en qué modos se podría aplicar?
+* Aunque el código actual no incluye la configuración del bloque PLL (Phase Locked Loop), de definirse los parámetros necesarios para activarlo, el multiplicador de frecuencia podría aplicarse exclusivamente en los Modos 1 (INTOSC) o Modo 2 (Cristal Externo), donde las señales base son lo suficientemente estables para el enganche de fase.
+  
+* >Enliste ventajas y desventajas de cada modo.
+Modo,Ventajas,Desventajas
+1: Interno (INTOSC),Sin componentes externos; ahorro de espacio/costo; libera pines I/O.,Menor precisión; susceptible a variaciones térmicas/voltaje.
+2: Cristal (HS),Máxima precisión y estabilidad térmica; esencial para comunicaciones seriales/USB.,Requiere componentes extra (cristal + 2 capacitores); ocupa pines OSC1/OSC2.
+3: RC Externo,Método de bajo costo y fácil implementación.,El más inestable; la velocidad depende críticamente de la calidad de los componentes y el calor.
 
 ## 5. Referencias
+
+1] Verle, M. (s.f.). Oscilador de Reloj. En Microcontroladores PIC – Programación en C con ejemplos. MikroElektronika. [Online]: https://www.mikroe.com/ebooks/microcontroladores-pic-programacion-en-c-con-ejemplos/oscilador-de-reloj
+
+[2] Microchip Technology Inc. (s.f.). PICmicro Mid-Range MCU Family Reference Manual (Documento DS33023A). [Online]: de https://ww1.microchip.com/downloads/en/devicedoc/33023a.pdf
